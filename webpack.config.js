@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = [
   // Main process configuration
@@ -21,6 +22,16 @@ module.exports = [
       path: path.resolve(__dirname, 'dist'),
       filename: 'main.js'
     },
+    plugins: [
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: 'src/assets',
+            to: 'src/assets'
+          }
+        ]
+      })
+    ],
     resolve: {
       extensions: ['.ts', '.js']
     }

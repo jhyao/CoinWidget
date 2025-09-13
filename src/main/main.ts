@@ -8,6 +8,8 @@ let wsConnections: Map<string, WebSocket> = new Map();
 let isQuitting = false;
 
 const createWindow = (): void => {
+  const iconPath = path.join(__dirname, '..', 'src', 'assets', 'icon.png');
+
   mainWindow = new BrowserWindow({
     width: 200,
     height: 150,
@@ -18,6 +20,8 @@ const createWindow = (): void => {
     transparent: true,
     minWidth: 200,
     minHeight: 150,
+    title: 'CoinWidget',
+    icon: iconPath,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -39,38 +43,27 @@ const createWindow = (): void => {
 };
 
 const createTray = (): void => {
-  // Create a simple 16x16 bitmap icon for the tray
   const { nativeImage } = require('electron');
 
-  // Create a simple icon with text "₿" (Bitcoin symbol)
-  const iconData = Buffer.from([
-    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
-    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10,
-    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0xF3, 0xFF, 0x61, 0x00, 0x00, 0x00,
-    0x19, 0x74, 0x45, 0x58, 0x74, 0x53, 0x6F, 0x66, 0x74, 0x77, 0x61, 0x72,
-    0x65, 0x00, 0x41, 0x64, 0x6F, 0x62, 0x65, 0x20, 0x49, 0x6D, 0x61, 0x67,
-    0x65, 0x52, 0x65, 0x61, 0x64, 0x79, 0x71, 0xC9, 0x65, 0x3C, 0x00, 0x00,
-    0x00, 0x44, 0x49, 0x44, 0x41, 0x54, 0x78, 0xDA, 0x94, 0x93, 0x41, 0x0A,
-    0x00, 0x20, 0x08, 0x04, 0xE7, 0xFE, 0x8F, 0xDD, 0x81, 0x36, 0x81, 0x20,
-    0xD8, 0x12, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83,
-    0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83,
-    0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83, 0x30, 0x83,
-    0xFE, 0x07, 0x91, 0x16, 0x01, 0x0A, 0x46, 0x4D, 0x98, 0x32, 0x00, 0x00,
-    0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
-  ]);
+  // Use the 32x32 PNG icon for better tray quality
+  const iconPath = path.join(__dirname, '..', 'src', 'assets', 'icon-32.png');
+  let trayImage;
 
-  const trayImage = nativeImage.createFromBuffer(iconData);
-
-  // Fallback: create simple colored square if above doesn't work
-  if (trayImage.isEmpty()) {
-    const canvas = nativeImage.createEmpty();
-    canvas.addRepresentation({ scaleFactor: 1.0, width: 16, height: 16,
+  try {
+    trayImage = nativeImage.createFromPath(iconPath);
+  } catch (error) {
+    console.log('Could not load tray icon, using fallback');
+    // Fallback: create simple colored square
+    trayImage = nativeImage.createEmpty();
+    trayImage.addRepresentation({
+      scaleFactor: 1.0,
+      width: 16,
+      height: 16,
       buffer: Buffer.alloc(16 * 16 * 4, 0x80) // Gray square
     });
-    tray = new Tray(canvas);
-  } else {
-    tray = new Tray(trayImage);
   }
+
+  tray = new Tray(trayImage);
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -97,7 +90,7 @@ const createTray = (): void => {
   ]);
 
   tray.setContextMenu(contextMenu);
-  tray.setToolTip('CoinWidget2 - Crypto Price Tracker');
+  tray.setToolTip('CoinWidget');
 
   // Double click to show/hide
   tray.on('double-click', () => {
@@ -179,4 +172,28 @@ ipcMain.on('minimize-app', () => {
   if (mainWindow) {
     mainWindow.hide();
   }
+});
+
+// Handle window resize requests from renderer
+ipcMain.on('resize-window', (event, { width, height }) => {
+  if (mainWindow) {
+    console.log(`Resizing window to: ${width}x${height}`);
+    mainWindow.setSize(width, height);
+  }
+});
+
+// Add global shortcut to toggle DevTools
+app.whenReady().then(() => {
+  const { globalShortcut } = require('electron');
+
+  // Register Ctrl+Shift+I (or Cmd+Shift+I on Mac) to toggle DevTools
+  globalShortcut.register('CommandOrControl+Shift+I', () => {
+    if (mainWindow) {
+      if (mainWindow.webContents.isDevToolsOpened()) {
+        mainWindow.webContents.closeDevTools();
+      } else {
+        mainWindow.webContents.openDevTools();
+      }
+    }
+  });
 });

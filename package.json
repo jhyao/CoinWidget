@@ -1,25 +1,22 @@
 {
   "name": "coinwidget2",
   "version": "1.0.0",
+  "description": "A Windows desktop widget for real-time cryptocurrency prices",
   "main": "dist/main.js",
-  "directories": {
-    "doc": "docs"
-  },
   "scripts": {
     "build": "webpack",
     "start": "npm run build && electron .",
     "dev": "webpack && electron .",
     "pack": "electron-builder",
     "dist": "npm run build && electron-builder",
+    "dist-portable": "npm run build && electron-builder --win dir",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["cryptocurrency", "bitcoin", "ethereum", "desktop", "widget"],
+  "author": "CoinWidget Team",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@types/ws": "^8.18.1",
-    "electron": "^38.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "recharts": "^3.2.0",
@@ -29,7 +26,9 @@
     "@types/node": "^24.3.3",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^7.1.2",
+    "electron": "^38.1.0",
     "electron-builder": "^26.0.12",
     "html-webpack-plugin": "^5.6.4",
     "style-loader": "^4.0.0",
@@ -37,5 +36,26 @@
     "typescript": "^5.9.2",
     "webpack": "^5.101.3",
     "webpack-cli": "^6.0.1"
+  },
+  "build": {
+    "appId": "com.coinwidget.app",
+    "productName": "CoinWidget",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "dir",
+      "icon": "src/assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }
