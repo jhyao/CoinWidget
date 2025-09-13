@@ -170,6 +170,7 @@ const connectToBinance = (): void => {
         const priceData: PriceData = {
           symbol: message.s,
           price: parseFloat(message.c).toFixed(2),
+          priceChangePercent: message.P || '0.00',
           timestamp: Date.now()
         };
 

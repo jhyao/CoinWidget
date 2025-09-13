@@ -13,10 +13,19 @@
     "dist-single": "npm run build && electron-builder --win portable",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["cryptocurrency", "bitcoin", "ethereum", "desktop", "widget"],
+  "keywords": [
+    "cryptocurrency",
+    "bitcoin",
+    "ethereum",
+    "desktop",
+    "widget"
+  ],
   "author": "CoinWidget Team",
   "license": "ISC",
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.0.1",
+    "@fortawesome/free-solid-svg-icons": "^7.0.1",
+    "@fortawesome/react-fontawesome": "^3.0.2",
     "@types/ws": "^8.18.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -52,11 +61,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "src/assets/icon.png"

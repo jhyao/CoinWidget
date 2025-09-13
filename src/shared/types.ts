@@ -1,6 +1,7 @@
 export interface PriceData {
   symbol: string;
   price: string;
+  priceChangePercent: string;
   timestamp: number;
 }
 

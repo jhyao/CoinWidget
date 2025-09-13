@@ -86,8 +86,9 @@ const PriceChart: React.FC<PriceChartProps> = React.memo(({ data, symbol, color 
             <span className="hover-time">{hoveredData.time}</span>
           </div>
         ) : (
-          <div className="chart-hover-info-debug" style={{color: '#666', fontSize: '10px'}}>
-            No hover data
+          <div className="chart-hover-info">
+            <span className="hover-price" style={{ color }}>{formatPrice(data[data.length - 1]?.price || 0)}</span>
+            <span className="hover-time">{formatTime(data[data.length - 1]?.timestamp || Date.now())}</span>
           </div>
         )}
       </div>

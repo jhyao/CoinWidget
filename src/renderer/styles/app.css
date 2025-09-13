@@ -23,6 +23,12 @@
   margin-bottom: 12px;
 }
 
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .widget-title {
   font-size: 14px;
   font-weight: 600;
@@ -53,11 +59,11 @@
 }
 
 .minimize-btn {
-  background: #ffbd2e;
+  background: #666666;
 }
 
 .close-btn {
-  background: #ff5f57;
+  background: #666666;
 }
 
 .price-list {
@@ -69,7 +75,6 @@
 
 .price-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 8px 12px 8px 8px;
   background: rgba(255, 255, 255, 0.05);
@@ -78,19 +83,38 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  gap: 12px;
 }
 
 .coin-symbol {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   transition: color 0.3s ease;
+  font-family: 'Courier New', monospace;
+  min-width: 30px;
+  flex-shrink: 0;
 }
 
 .coin-price {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   font-family: 'Courier New', monospace;
   transition: color 0.3s ease;
+  /* text-align: left; */
+  /* line-height: 1.2; */
+  flex-shrink: 0;
+  min-width: 110px;
+  /* flex: 1; */
+}
+
+.coin-change {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  /* text-align: left; */
+  /* line-height: 1.2; */
+  min-width: 50px;
+  flex-shrink: 0;
 }
 
 .loading {
@@ -170,30 +194,54 @@
 }
 
 .add-btn {
-  background: #28a745;
+  background: #666666;
   width: 20px;
   height: 20px;
-  font-size: 14px;
+  font-size: 10px;
   border-radius: 4px;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-btn:hover {
+  opacity: 0.8;
 }
 
 .remove-btn {
-  background: #dc3545;
+  background: #666666;
   border: none;
   color: white;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
-  margin-left: 8px;
   transition: opacity 0.2s;
   -webkit-app-region: no-drag;
+  flex-shrink: 0;
+  opacity: 0;
+  visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
 }
 
 .remove-btn:hover {
-  opacity: 0.8;
+  opacity: 0.8 !important;
+}
+
+.price-item:hover .remove-btn {
+  opacity: 1;
+  visibility: visible;
 }
 
 .add-modal {
@@ -220,12 +268,12 @@
 }
 
 .close-modal-btn {
-  background: #ff5f57;
+  background: #666666;
   border: none;
   color: white;
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
   font-weight: bold;

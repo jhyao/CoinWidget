@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { PriceData, PriceHistoryPoint, BinanceSymbol } from '../../shared/types';
 import { CHART_CONFIG, CALCULATED_CONFIG } from '../../shared/config';
 import PriceChart from './PriceChart';
@@ -247,9 +249,8 @@ const PriceWidget: React.FC = () => {
   const COLOR_SCHEMA = [
     '#FF6B35', // Vibrant Orange (Bitcoin-like)
     '#4ECDC4', // Teal (Ethereum-like)
-    '#45B7D1', // Sky Blue
-    '#96CEB4', // Mint Green
     '#FFEAA7', // Warm Yellow
+    '#96CEB4', // Mint Green
     '#DDA0DD', // Plum
     '#F39C12', // Orange
     '#E74C3C', // Red
@@ -259,6 +260,7 @@ const PriceWidget: React.FC = () => {
     '#E67E22', // Carrot
     '#2ECC71', // Green
     '#F1C40F', // Yellow
+    '#45B7D1', // Sky Blue
     '#E91E63', // Pink
     '#FF5722', // Deep Orange
     '#795548', // Brown
@@ -290,7 +292,7 @@ const PriceWidget: React.FC = () => {
 
       // Additional height when chart is shown
       const chartHeight = selectedCoin ? CHART_CONFIG.CHART_HEIGHT + 80 : 0; // +80 for padding and header
-      const modalHeight = showAddModal ? 200 : 0; // Height for add symbol modal
+      const modalHeight = showAddModal ? 246 : 0; // Height for add symbol modal
 
       const newWidth = selectedCoin ? 400 : baseWidth; // Wider when chart is shown
       const newHeight = headerHeight + symbolListHeight + chartHeight + modalHeight + 20; // +20 for padding
@@ -326,11 +328,13 @@ const PriceWidget: React.FC = () => {
   return (
     <div className="widget-container">
       <div className="widget-header">
-        <h3 className="widget-title">Crypto Prices</h3>
-        <div className="controls">
-          <button className="control-btn add-btn" onClick={() => setShowAddModal(true)} title="Add Symbol">
-            +
+        <div className="title-section">
+          <h3 className="widget-title">Crypto Prices</h3>
+          <button className="control-btn add-btn" onClick={() => showAddModal ? setShowAddModal(false) : setShowAddModal(true) } title="Add Symbol">
+            <FontAwesomeIcon icon={faPlus} />
           </button>
+        </div>
+        <div className="controls">
           <button className="control-btn minimize-btn" onClick={handleMinimize}>
             −
           </button>
@@ -362,6 +366,16 @@ const PriceWidget: React.FC = () => {
             >
               {formatPrice(prices[symbol]?.price)}
             </span>
+            {prices[symbol] && (
+              <span
+                className="coin-change"
+                style={{
+                  color: parseFloat(prices[symbol]?.priceChangePercent || '0') >= 0 ? '#4CAF50' : '#F44336'
+                }}
+              >
+                {parseFloat(prices[symbol]?.priceChangePercent || '0') >= 0 ? '+' : ''}{parseFloat(prices[symbol]?.priceChangePercent || '0').toFixed(2)}%
+              </span>
+            )}
             <button
               className="remove-btn"
               onClick={(e) => {
@@ -370,7 +384,7 @@ const PriceWidget: React.FC = () => {
               }}
               title="Remove Symbol"
             >
-              ×
+              <FontAwesomeIcon icon={faTrash} />
             </button>
           </div>
         ))}
