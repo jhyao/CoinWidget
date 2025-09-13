@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { PriceHistoryPoint } from '../../shared/types';
 import { CHART_CONFIG } from '../../shared/config';
@@ -10,15 +10,14 @@ interface PriceChartProps {
 }
 
 const PriceChart: React.FC<PriceChartProps> = React.memo(({ data, symbol, color }) => {
-  const formatTooltipValue = (value: any) => {
-    const price = parseFloat(value);
-    // Show appropriate decimal places based on price range
+  const [hoveredData, setHoveredData] = useState<{ price: number; time: string } | null>(null);
+  const formatPrice = (price: number) => {
     const decimals = price > 1000 ? 2 : price > 1 ? 3 : 6;
-    return [`$${price.toFixed(decimals)}`];
+    return `$${price.toFixed(decimals)}`;
   };
 
-  const formatTooltipLabel = (label: any) => {
-    const date = new Date(label);
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
     return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -26,6 +25,30 @@ const PriceChart: React.FC<PriceChartProps> = React.memo(({ data, symbol, color 
       minute: '2-digit',
       hour12: false
     });
+  };
+
+  // Custom tooltip component that captures hover data and renders nothing
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    // Don't use useEffect inside the tooltip - it causes infinite re-renders
+    // Instead, set state directly during render (which is safe for this case)
+    if (active && payload && payload.length > 0) {
+      const data = payload[0].payload;
+      // Only update if the data has actually changed to prevent infinite loops
+      if (!hoveredData || hoveredData.price !== data.price || hoveredData.time !== formatTime(data.timestamp)) {
+        setTimeout(() => {
+          setHoveredData({
+            price: data.price,
+            time: formatTime(data.timestamp)
+          });
+        }, 0);
+      }
+    } else if (hoveredData !== null) {
+      setTimeout(() => {
+        setHoveredData(null);
+      }, 0);
+    }
+
+    return null;
   };
 
   // Calculate dynamic Y-axis domain for better visualization
@@ -54,10 +77,25 @@ const PriceChart: React.FC<PriceChartProps> = React.memo(({ data, symbol, color 
   return (
     <div className="chart-container">
       <div className="chart-header">
-        <h4>{symbol} Price Chart ({CHART_CONFIG.HISTORY_HOURS} hours)</h4>
+        <div className="chart-title">
+          <h4>{symbol} ({CHART_CONFIG.HISTORY_HOURS} hours)</h4>
+        </div>
+        {hoveredData ? (
+          <div className="chart-hover-info">
+            <span className="hover-price" style={{ color }}>{formatPrice(hoveredData.price)}</span>
+            <span className="hover-time">{hoveredData.time}</span>
+          </div>
+        ) : (
+          <div className="chart-hover-info-debug" style={{color: '#666', fontSize: '10px'}}>
+            No hover data
+          </div>
+        )}
       </div>
       <ResponsiveContainer width="100%" height={CHART_CONFIG.CHART_HEIGHT}>
-        <LineChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+        <LineChart
+          data={data}
+          margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+        >
           <XAxis
             dataKey="timestamp"
             tick={false}
@@ -73,16 +111,7 @@ const PriceChart: React.FC<PriceChartProps> = React.memo(({ data, symbol, color 
             width={0}
           />
           <Tooltip
-            formatter={formatTooltipValue}
-            labelFormatter={formatTooltipLabel}
-            contentStyle={{
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              border: `2px solid ${color}`,
-              borderRadius: '8px',
-              color: 'white',
-              fontSize: '10px',
-              padding: '8px 12px'
-            }}
+            content={CustomTooltip}
             cursor={{
               stroke: color,
               strokeWidth: 1,

@@ -62,11 +62,15 @@ npm run dev
 npm run dist
 # Output:
 #   - release/CoinWidget Setup 1.0.0.exe (installer)
-#   - release/win-unpacked/CoinWidget.exe (portable)
+#   - release/win-unpacked/CoinWidget.exe (portable folder)
 
-# Create only portable executable (no installer)
+# Create only portable folder (no installer)
 npm run dist-portable
-# Output: release/win-unpacked/CoinWidget.exe
+# Output: release/win-unpacked/CoinWidget.exe (requires folder)
+
+# Create single executable file
+npm run dist-single
+# Output: release/CoinWidget 1.0.0.exe (single file)
 ```
 
 ### Distribution Options
@@ -77,11 +81,17 @@ npm run dist-portable
 - **Installation**: Double-click installer, follow wizard
 - **Best for**: Regular users who want standard Windows app experience
 
-#### Portable Executable (No installation required)
-- **File**: `win-unpacked/CoinWidget.exe` (202 MB)
-- **Features**: Self-contained, runs from any location, no admin rights needed
-- **Usage**: Copy folder to any Windows PC and run CoinWidget.exe
-- **Best for**: Testing, USB drives, network locations, or systems without admin access
+#### Single Executable File (Ultimate portability)
+- **File**: `CoinWidget 1.0.0.exe` (80 MB)
+- **Features**: Self-extracting, runs anywhere, no dependencies, no admin rights needed
+- **Usage**: Single file that runs on any Windows PC
+- **Best for**: Maximum portability, sharing, USB drives, one-file distribution
+
+#### Portable Folder (Developer testing)
+- **File**: `win-unpacked/CoinWidget.exe` (202 MB folder)
+- **Features**: Unpacked files, manual dependency management
+- **Usage**: Copy entire folder to run
+- **Best for**: Development testing, custom deployments
 
 ### Build Features
 - **Professional Packaging**: Uses Electron Builder for Windows compatibility
@@ -139,8 +149,9 @@ CoinWidget2/
 | `npm run dev` | Development mode with hot reload |
 | `npm run build` | Build application for production |
 | `npm start` | Build and run the application |
-| `npm run dist` | Create Windows installer + portable executable |
-| `npm run dist-portable` | Create only portable executable (no installer) |
+| `npm run dist` | Create Windows installer + portable folder |
+| `npm run dist-portable` | Create only portable folder (no installer) |
+| `npm run dist-single` | Create single executable file (80 MB) |
 | `npm run pack` | Package application without installer |
 
 ## Configuration

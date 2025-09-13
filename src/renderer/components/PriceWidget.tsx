@@ -146,7 +146,10 @@ const PriceWidget: React.FC = () => {
 
   const formatPrice = (price: string | undefined) => {
     if (!price) return 'Loading...';
-    return `$${parseFloat(price).toLocaleString()}`;
+    return `$${parseFloat(price).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   };
 
   const handleCoinClick = (symbol: string) => {
@@ -236,7 +239,7 @@ const PriceWidget: React.FC = () => {
         <PriceChart
           data={priceHistory[selectedCoin as keyof HistoryState]}
           symbol={selectedCoin}
-          color={selectedCoin === 'BTC' ? '#f7931a' : '#627eea'}
+          color={selectedCoin === 'BTC' ? '#ffb347' : '#7b9fff'}
         />
       )}
     </div>

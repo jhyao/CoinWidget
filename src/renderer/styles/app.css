@@ -84,9 +84,9 @@
 }
 
 .coin-price {
-  font-size: 14px;
-  font-weight: 500;
-  color: #00d4aa;
+  font-size: 18px;
+  font-weight: 700;
+  color: #00ff9f;
   font-family: 'Courier New', monospace;
 }
 
@@ -100,11 +100,11 @@
 }
 
 .btc-price {
-  color: #f7931a;
+  color: #ffb347;
 }
 
 .eth-price {
-  color: #627eea;
+  color: #7b9fff;
 }
 
 .chart-container {
@@ -118,13 +118,36 @@
 
 .chart-header {
   margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 20px;
 }
 
-.chart-header h4 {
+.chart-title h4 {
   margin: 0;
   font-size: 12px;
   color: #ccc;
   font-weight: 500;
+}
+
+.chart-hover-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.hover-price {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+.hover-time {
+  font-size: 10px;
+  color: #aaa;
+  font-weight: 400;
 }
 
 .chart-placeholder {
