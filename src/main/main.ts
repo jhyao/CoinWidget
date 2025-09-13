@@ -9,13 +9,15 @@ let isQuitting = false;
 
 const createWindow = (): void => {
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 500,
+    width: 200,
+    height: 150,
     frame: false,
-    resizable: false,
+    resizable: true,
     alwaysOnTop: true,
     skipTaskbar: true,
     transparent: true,
+    minWidth: 200,
+    minHeight: 150,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false

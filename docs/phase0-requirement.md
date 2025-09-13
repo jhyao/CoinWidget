@@ -6,3 +6,7 @@ The widget should
 3. Receive realtime price update fron binance api
 
 Build using electron and reat.js
+
+
+## Update1
+* window size adjustable
