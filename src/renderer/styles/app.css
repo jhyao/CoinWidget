@@ -71,23 +71,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px 12px 8px 8px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .coin-symbol {
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  transition: color 0.3s ease;
 }
 
 .coin-price {
   font-size: 18px;
   font-weight: 700;
-  color: #00ff9f;
   font-family: 'Courier New', monospace;
+  transition: color 0.3s ease;
 }
 
 .loading {
@@ -97,14 +100,6 @@
 
 .error {
   color: #ff6b6b;
-}
-
-.btc-price {
-  color: #ffb347;
-}
-
-.eth-price {
-  color: #7b9fff;
 }
 
 .chart-container {
@@ -172,4 +167,147 @@
 .price-item.active {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.add-btn {
+  background: #28a745;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.remove-btn {
+  background: #dc3545;
+  border: none;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 8px;
+  transition: opacity 0.2s;
+  -webkit-app-region: no-drag;
+}
+
+.remove-btn:hover {
+  opacity: 0.8;
+}
+
+.add-modal {
+  background: rgba(40, 40, 40, 0.98);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-app-region: no-drag;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.close-modal-btn {
+  background: #ff5f57;
+  border: none;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.close-modal-btn:hover {
+  opacity: 0.8;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.symbol-list {
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.symbol-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.symbol-option:last-child {
+  border-bottom: none;
+}
+
+.symbol-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.symbol-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.symbol-pair {
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* Scrollbar styling for webkit browsers */
+.symbol-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.symbol-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.symbol-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.symbol-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }

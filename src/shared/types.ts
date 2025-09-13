@@ -11,16 +11,21 @@ export interface PriceHistoryPoint {
 }
 
 export interface CoinPrice {
-  BTC: PriceData;
-  ETH: PriceData;
+  [symbol: string]: PriceData;
 }
 
 export interface CoinHistory {
-  BTC: PriceHistoryPoint[];
-  ETH: PriceHistoryPoint[];
+  [symbol: string]: PriceHistoryPoint[];
 }
 
 export interface WindowMessage {
   type: 'PRICE_UPDATE';
   payload: CoinPrice;
+}
+
+export interface BinanceSymbol {
+  symbol: string;
+  baseAsset: string;
+  quoteAsset: string;
+  status: string;
 }
