@@ -1,0 +1,102 @@
+.widget-container {
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  min-width: 250px;
+  -webkit-app-region: drag;
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.widget-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.control-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  color: white;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.control-btn:hover {
+  opacity: 0.8;
+}
+
+.minimize-btn {
+  background: #ffbd2e;
+}
+
+.close-btn {
+  background: #ff5f57;
+}
+
+.price-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.coin-symbol {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.coin-price {
+  font-size: 14px;
+  font-weight: 500;
+  color: #00d4aa;
+  font-family: 'Courier New', monospace;
+}
+
+.loading {
+  color: #888;
+  font-style: italic;
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+.btc-price {
+  color: #f7931a;
+}
+
+.eth-price {
+  color: #627eea;
+}
