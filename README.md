@@ -14,17 +14,17 @@ A Windows desktop widget that displays real-time cryptocurrency prices for Bitco
 - Hover tooltips on price charts
 - Configurable chart parameters
 
-## Quick Install (Windows)
+## Screenshots
 
-1. **Download the installer:**
-   - Run `npm run dist` to build the installer
-   - Find `CoinWidget Setup 1.0.0.exe` in the `release/` folder
+### Default Widget View
+![Basic Default View](docs/images/basic_default.png)
 
-2. **Install:**
-   - Double-click the installer
-   - Choose installation directory
-   - Creates desktop shortcut and Start Menu entry
-   - Launch CoinWidget from desktop or Start Menu
+### Add Symbol Interface
+![Add Symbol Interface](docs/images/add_symbol.png)
+
+### Interactive Price Chart
+![Price Chart with Historical Data](docs/images/price_chart.png)
+
 
 ## Development Setup
 
