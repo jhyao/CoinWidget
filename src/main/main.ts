@@ -4,10 +4,11 @@ import { CoinPrice, PriceData, WindowMessage } from '../shared/types';
 
 let mainWindow: BrowserWindow;
 let tray: Tray;
-let wsConnections: Map<string, WebSocket> = new Map();
+let wsConnection: WebSocket | null = null;
 let isQuitting = false;
 let watchedSymbols: string[] = ['BTC', 'ETH']; // Default symbols
-let reconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
+let reconnectTimeout: NodeJS.Timeout | null = null;
+let requestId = 1; // For tracking subscribe/unsubscribe requests
 
 const createWindow = (): void => {
   const iconPath = path.join(__dirname, '..', 'src', 'assets', 'icon.png');
@@ -87,19 +88,17 @@ const createTray = (): void => {
       click: () => {
         isQuitting = true;
 
-        // Clean up WebSocket connections
-        wsConnections.forEach((ws) => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.close(1000, 'App closing');
-          }
-        });
-        wsConnections.clear();
+        // Clean up WebSocket connection
+        if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+          wsConnection.close(1000, 'App closing');
+        }
+        wsConnection = null;
 
-        // Clear all reconnection timeouts
-        reconnectTimeouts.forEach((timeout) => {
-          clearTimeout(timeout);
-        });
-        reconnectTimeouts.clear();
+        // Clear reconnection timeout
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout);
+          reconnectTimeout = null;
+        }
 
         app.quit();
       }
@@ -121,104 +120,131 @@ const createTray = (): void => {
 };
 
 const connectToBinance = (): void => {
-  console.log('Setting up WebSocket connections for symbols:', watchedSymbols);
+  console.log('Setting up single WebSocket connection for symbols:', watchedSymbols);
 
-  // Clear all existing reconnection timeouts
-  reconnectTimeouts.forEach((timeout) => {
-    clearTimeout(timeout);
-  });
-  reconnectTimeouts.clear();
-
-  // Close existing connections gracefully
-  wsConnections.forEach((ws, symbol) => {
-    if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-      ws.close(1000, 'Reconnecting with new symbol list');
+  // Close existing connection if any
+  if (wsConnection) {
+    if (wsConnection.readyState === WebSocket.OPEN) {
+      wsConnection.close(1000, 'Reconnecting with new symbol list');
     }
-  });
-  wsConnections.clear();
+    wsConnection = null;
+  }
 
-  const symbols = watchedSymbols.map(symbol => `${symbol.toLowerCase()}usdt`);
+  // Clear existing reconnection timeout
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
 
-  symbols.forEach(symbol => {
-    connectToSymbol(symbol);
-  });
+  // Create single WebSocket connection to Binance stream
+  console.log('Connecting to Binance WebSocket stream...');
+  wsConnection = new WebSocket('wss://stream.binance.com:9443/ws');
+
+  wsConnection.onopen = () => {
+    console.log('✓ Connected to Binance WebSocket stream');
+
+    // Subscribe to all current symbols
+    if (watchedSymbols.length > 0) {
+      subscribeToSymbols(watchedSymbols);
+    }
+
+    // Clear any pending reconnection timeout
+    if (reconnectTimeout) {
+      clearTimeout(reconnectTimeout);
+      reconnectTimeout = null;
+    }
+  };
+
+  wsConnection.onmessage = (event) => {
+    try {
+      const message = JSON.parse(event.data);
+
+      // Handle subscription response
+      if (message.result === null && message.id) {
+        console.log(`✓ Subscription request ${message.id} completed`);
+        return;
+      }
+
+      // Handle ticker data - direct format from individual subscriptions
+      if (message.e === '24hrTicker' && message.s && message.c) {
+        const priceData: PriceData = {
+          symbol: message.s,
+          price: parseFloat(message.c).toFixed(2),
+          timestamp: Date.now()
+        };
+
+        const symbol = message.s.replace('USDT', '');
+
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('price-update', {
+            symbol: symbol,
+            data: priceData
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+    }
+  };
+
+  wsConnection.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
+  wsConnection.onclose = (event) => {
+    console.log(`WebSocket connection closed (code: ${event.code}, reason: ${event.reason})`);
+    wsConnection = null;
+
+    // Only reconnect if close wasn't intentional and app isn't quitting
+    if (!isQuitting && event.code !== 1000) {
+      console.log('Attempting to reconnect in 5 seconds...');
+      reconnectTimeout = setTimeout(() => {
+        connectToBinance();
+      }, 5000);
+    }
+  };
 };
 
-const connectToSymbol = (symbol: string): void => {
-  // Don't create connection if it already exists and is open
-  const existingWs = wsConnections.get(symbol);
-  if (existingWs && (existingWs.readyState === WebSocket.OPEN || existingWs.readyState === WebSocket.CONNECTING)) {
+const subscribeToSymbols = (symbols: string[]): void => {
+  if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+    console.log('WebSocket not ready, cannot subscribe');
     return;
   }
 
-  console.log(`Connecting to ${symbol} stream...`);
-  const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@ticker`);
-
-  ws.onopen = () => {
-    console.log(`✓ Connected to ${symbol} stream`);
-    // Clear any pending reconnection timeout for this symbol
-    const timeout = reconnectTimeouts.get(symbol);
-    if (timeout) {
-      clearTimeout(timeout);
-      reconnectTimeouts.delete(symbol);
-    }
+  const streams = symbols.map(symbol => `${symbol.toLowerCase()}usdt@ticker`);
+  const subscribeMessage = {
+    method: 'SUBSCRIBE',
+    params: streams,
+    id: requestId++
   };
 
-  ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      const priceData: PriceData = {
-        symbol: data.s,
-        price: parseFloat(data.c).toFixed(2),
-        timestamp: Date.now()
-      };
+  console.log('Subscribing to streams:', streams);
+  wsConnection.send(JSON.stringify(subscribeMessage));
+};
 
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('price-update', {
-          symbol: symbol.replace('usdt', '').toUpperCase(),
-          data: priceData
-        });
-      }
-    } catch (error) {
-      console.error(`Error parsing price data for ${symbol}:`, error);
-    }
+const unsubscribeFromSymbols = (symbols: string[]): void => {
+  if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+    console.log('WebSocket not ready, cannot unsubscribe');
+    return;
+  }
+
+  const streams = symbols.map(symbol => `${symbol.toLowerCase()}usdt@ticker`);
+  const unsubscribeMessage = {
+    method: 'UNSUBSCRIBE',
+    params: streams,
+    id: requestId++
   };
 
-  ws.onerror = (error) => {
-    console.error(`WebSocket error for ${symbol}:`, error);
-  };
+  console.log('Unsubscribing from streams:', streams);
+  wsConnection.send(JSON.stringify(unsubscribeMessage));
+};
 
-  ws.onclose = (event) => {
-    console.log(`Connection closed for ${symbol} (code: ${event.code}, reason: ${event.reason})`);
+const addSymbolSubscription = (symbol: string): void => {
+  subscribeToSymbols([symbol]);
+};
 
-    // Only reconnect if:
-    // 1. The symbol is still in the watched list
-    // 2. The close wasn't intentional (code 1000)
-    // 3. We're not quitting the app
-    if (!isQuitting &&
-        watchedSymbols.some(s => `${s.toLowerCase()}usdt` === symbol) &&
-        event.code !== 1000) {
-
-      // Clear any existing timeout for this symbol
-      const existingTimeout = reconnectTimeouts.get(symbol);
-      if (existingTimeout) {
-        clearTimeout(existingTimeout);
-      }
-
-      // Set up reconnection with exponential backoff (5 seconds for now)
-      const timeout = setTimeout(() => {
-        console.log(`Attempting to reconnect to ${symbol}...`);
-        connectToSymbol(symbol);
-      }, 5000);
-
-      reconnectTimeouts.set(symbol, timeout);
-    }
-
-    // Remove from connections map
-    wsConnections.delete(symbol);
-  };
-
-  wsConnections.set(symbol, ws);
+const removeSymbolSubscription = (symbol: string): void => {
+  unsubscribeFromSymbols([symbol]);
 };
 
 app.whenReady().then(() => {
@@ -241,19 +267,17 @@ app.on('window-all-closed', () => {
 ipcMain.on('close-app', () => {
   isQuitting = true;
 
-  // Clean up WebSocket connections
-  wsConnections.forEach((ws) => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.close(1000, 'App closing');
-    }
-  });
-  wsConnections.clear();
+  // Clean up WebSocket connection
+  if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+    wsConnection.close(1000, 'App closing');
+  }
+  wsConnection = null;
 
-  // Clear all reconnection timeouts
-  reconnectTimeouts.forEach((timeout) => {
-    clearTimeout(timeout);
-  });
-  reconnectTimeouts.clear();
+  // Clear reconnection timeout
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
 
   app.quit();
 });
@@ -281,7 +305,10 @@ ipcMain.handle('add-symbol', (event, symbol: string) => {
   const upperSymbol = symbol.toUpperCase();
   if (!watchedSymbols.includes(upperSymbol)) {
     watchedSymbols.push(upperSymbol);
-    connectToBinance(); // Reconnect with new symbols
+    console.log(`Adding symbol: ${upperSymbol}`);
+
+    // Add subscription for new symbol if connection is open
+    addSymbolSubscription(upperSymbol);
     return true;
   }
   return false;
@@ -291,8 +318,12 @@ ipcMain.handle('remove-symbol', (event, symbol: string) => {
   const upperSymbol = symbol.toUpperCase();
   const index = watchedSymbols.indexOf(upperSymbol);
   if (index > -1) {
+    console.log(`Removing symbol: ${upperSymbol}`);
+
+    // Remove subscription for symbol if connection is open
+    removeSymbolSubscription(upperSymbol);
+
     watchedSymbols.splice(index, 1);
-    connectToBinance(); // Reconnect with remaining symbols
     return true;
   }
   return false;
