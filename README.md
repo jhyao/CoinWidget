@@ -1,4 +1,4 @@
-# CoinWidget2
+# CoinWidget
 
 A Windows desktop widget that displays real-time cryptocurrency prices for Bitcoin (BTC) and Ethereum (ETH) using Electron and React.
 
@@ -31,7 +31,7 @@ A Windows desktop widget that displays real-time cryptocurrency prices for Bitco
 1. **Clone the repository:**
 ```bash
 git clone <repository-url>
-cd CoinWidget2
+cd CoinWidget
 ```
 
 2. **Install dependencies:**
@@ -102,7 +102,7 @@ npm run dist-single
 ## Project Structure
 
 ```
-CoinWidget2/
+CoinWidget/
 ├── src/
 │   ├── main/
 │   │   └── main.ts              # Electron main process
