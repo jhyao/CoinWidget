@@ -6,6 +6,7 @@ export interface PriceData {
 }
 
 export interface PriceHistoryPoint {
+  open_time: number; // Open time
   timestamp: number;
   price: number;
   time: string;

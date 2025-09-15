@@ -65,12 +65,30 @@ const PriceWidget: React.FC = () => {
           `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=${CHART_CONFIG.BINANCE_INTERVAL}&startTime=${historyStartTime}&limit=${CALCULATED_CONFIG.MAX_DATA_POINTS}`
         );
 
+        // [
+        //   [
+        //     1499040000000,      // Kline open time
+        //     "0.01634790",       // Open price
+        //     "0.80000000",       // High price
+        //     "0.01575800",       // Low price
+        //     "0.01577100",       // Close price
+        //     "148976.11427815",  // Volume
+        //     1499644799999,      // Kline Close time
+        //     "2434.19055334",    // Quote asset volume
+        //     308,                // Number of trades
+        //     "1756.87402397",    // Taker buy base asset volume
+        //     "28.46694368",      // Taker buy quote asset volume
+        //     "0"                 // Unused field, ignore.
+        //   ]
+        // ]
+
         if (response.ok) {
           const klines = await response.json();
           const historicalPoints = klines.map((kline: any[]) => ({
-            timestamp: kline[0], // Open time
+            open_time: kline[0], // Open time
+            timestamp: kline[6] + 1, // Close time， display close price, so timestamp should be close time + 1ms
             price: parseFloat(kline[4]), // Close price
-            time: new Date(kline[0]).toLocaleTimeString()
+            time: new Date(kline[4] + 1).toLocaleTimeString()
           }));
 
           console.log(`Loaded ${historicalPoints.length} historical points for ${symbol}`);
@@ -177,6 +195,7 @@ const PriceWidget: React.FC = () => {
           return {
             ...prev,
             [symbol]: [{
+              open_time: timestamp,
               timestamp,
               price,
               time: new Date(timestamp).toLocaleTimeString()
@@ -184,13 +203,14 @@ const PriceWidget: React.FC = () => {
           };
         }
 
-        const timeDiff = timestamp - lastPoint.timestamp;
+        const timeDiff = timestamp - lastPoint.open_time;
         const newHistory = [...currentHistory];
 
         // If within configured interval of last point, update the last point instead of adding new one
         if (timeDiff < CALCULATED_CONFIG.INTERVAL_MS) {
           // Update the last point with the new price (most recent within the interval)
           newHistory[newHistory.length - 1] = {
+            open_time: lastPoint.open_time,
             timestamp,
             price,
             time: new Date(timestamp).toLocaleTimeString()
@@ -198,6 +218,7 @@ const PriceWidget: React.FC = () => {
         } else {
           // Add new point if more than configured interval has passed
           newHistory.push({
+            open_time: timestamp,
             timestamp,
             price,
             time: new Date(timestamp).toLocaleTimeString()

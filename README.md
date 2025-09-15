@@ -160,7 +160,7 @@ Chart and data parameters can be modified in `src/shared/config.ts`:
 
 ```typescript
 export const CHART_CONFIG = {
-  HISTORY_HOURS: 6,        // Hours of historical data
+  HISTORY_HOURS: 1,        // Hours of historical data
   INTERVAL_MINUTES: 1,     // Chart data interval
   BINANCE_INTERVAL: '1m',  // Binance API interval
   CHART_HEIGHT: 200        // Chart height in pixels
