@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPlus, faSync } from '@fortawesome/free-solid-svg-icons';
 import { PriceData, PriceHistoryPoint, BinanceSymbol } from '../../shared/types';
 import { CHART_CONFIG, CALCULATED_CONFIG } from '../../shared/config';
 import PriceChart from './PriceChart';
@@ -23,6 +23,7 @@ const PriceWidget: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [availableSymbols, setAvailableSymbols] = useState<BinanceSymbol[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Load watched symbols and historical data on component mount
   useEffect(() => {
@@ -266,6 +267,20 @@ const PriceWidget: React.FC = () => {
     setSelectedCoin(newSelection);
   };
 
+  const handleRefreshChart = async () => {
+    if (isRefreshing || !selectedCoin) return;
+
+    setIsRefreshing(true);
+    try {
+      await loadHistoricalData([selectedCoin]);
+      console.log(`Refreshed chart data for ${selectedCoin}`);
+    } catch (error) {
+      console.error('Failed to refresh chart:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // Comprehensive color schema for cryptocurrency symbols
   const COLOR_SCHEMA = [
     '#FF6B35', // Vibrant Orange (Bitcoin-like)
@@ -354,6 +369,16 @@ const PriceWidget: React.FC = () => {
           <button className="control-btn add-btn" onClick={() => showAddModal ? setShowAddModal(false) : setShowAddModal(true) } title="Add Symbol">
             <FontAwesomeIcon icon={faPlus} />
           </button>
+          {selectedCoin && (
+            <button
+              className={`control-btn refresh-btn ${isRefreshing ? 'spinning' : ''}`}
+              onClick={handleRefreshChart}
+              disabled={isRefreshing}
+              title="Refresh Chart"
+            >
+              <FontAwesomeIcon icon={faSync} />
+            </button>
+          )}
         </div>
         <div className="controls">
           <button className="control-btn minimize-btn" onClick={handleMinimize}>

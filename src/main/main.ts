@@ -31,11 +31,23 @@ const createWindow = (): void => {
     }
   });
 
+  
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  mainWindow.setFullScreenable(false);
+  // mainWindow.moveTop();
+
   const isDev = process.env.NODE_ENV === 'development';
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   mainWindow.setPosition(50, 50);
+
+  // Ensure window stays on top even when losing focus
+  mainWindow.on('blur', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    }
+  });
 
   mainWindow.on('close', (event: any) => {
     if (!isQuitting) {

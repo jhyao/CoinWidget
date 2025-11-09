@@ -214,6 +214,45 @@
   opacity: 0.8;
 }
 
+.refresh-btn {
+  background: #666666;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  border-radius: 4px;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.3s;
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-btn:hover {
+  opacity: 0.8;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-btn.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .remove-btn {
   background: #666666;
   border: none;
