@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, Tray, Menu } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { CoinPrice, PriceData, WindowMessage, MarketType } from '../shared/types';
 
 let mainWindow: BrowserWindow;
@@ -7,10 +8,46 @@ let tray: Tray;
 let wsSpotConnection: WebSocket | null = null;
 let wsPerpConnection: WebSocket | null = null;
 let isQuitting = false;
-let watchedSymbols: string[] = ['BTCUSDT', 'ETHUSDT']; // Default symbols - now using full notation
+let watchedSymbols: string[] = []; // Will be loaded from file or defaults
 let reconnectTimeout: NodeJS.Timeout | null = null;
 let perpReconnectTimeout: NodeJS.Timeout | null = null;
 let requestId = 1; // For tracking subscribe/unsubscribe requests
+
+// File storage utilities
+const STORAGE_FILE = 'watched-symbols.json';
+const getStoragePath = (): string => {
+  return path.join(app.getPath('userData'), STORAGE_FILE);
+};
+
+const loadWatchedSymbols = (): string[] => {
+  try {
+    const storagePath = getStoragePath();
+    if (fs.existsSync(storagePath)) {
+      const data = fs.readFileSync(storagePath, 'utf-8');
+      const symbols = JSON.parse(data);
+      if (Array.isArray(symbols) && symbols.length > 0) {
+        console.log('Loaded watched symbols from file:', symbols);
+        return symbols;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading watched symbols:', error);
+  }
+  // Return defaults if file doesn't exist or is invalid
+  console.log('Using default symbols');
+  return ['BTCUSDT', 'ETHUSDT'];
+};
+
+const saveWatchedSymbols = (): void => {
+  try {
+    const storagePath = getStoragePath();
+    const data = JSON.stringify(watchedSymbols, null, 2);
+    fs.writeFileSync(storagePath, data, 'utf-8');
+    console.log('Saved watched symbols to file:', watchedSymbols);
+  } catch (error) {
+    console.error('Error saving watched symbols:', error);
+  }
+};
 
 // Helper functions for market type detection
 const getMarketType = (symbol: string): MarketType => {
@@ -443,6 +480,9 @@ const removeSymbolSubscription = (symbol: string): void => {
 };
 
 app.whenReady().then(() => {
+  // Load watched symbols from file before creating window
+  watchedSymbols = loadWatchedSymbols();
+
   createWindow();
   createTray();
   connectToBinance();
@@ -512,6 +552,9 @@ ipcMain.handle('add-symbol', (event, symbol: string) => {
     watchedSymbols.push(upperSymbol);
     console.log(`Adding symbol: ${upperSymbol}`);
 
+    // Save to file
+    saveWatchedSymbols();
+
     // Add subscription for new symbol if connection is open
     addSymbolSubscription(upperSymbol);
     return true;
@@ -529,6 +572,10 @@ ipcMain.handle('remove-symbol', (event, symbol: string) => {
     removeSymbolSubscription(upperSymbol);
 
     watchedSymbols.splice(index, 1);
+
+    // Save to file
+    saveWatchedSymbols();
+
     return true;
   }
   return false;

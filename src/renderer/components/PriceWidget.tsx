@@ -349,10 +349,15 @@ const PriceWidget: React.FC = () => {
 
   // Auto-resize window when chart is shown/hidden or symbol count changes
   useEffect(() => {
+    // Only resize if we have symbols loaded (prevents premature resize on mount)
+    if (watchedSymbols.length === 0) {
+      return;
+    }
+
     const resizeWindow = () => {
       // Base dimensions
-      const baseWidth = 300;
-      const symbolListHeight = Math.max(2, watchedSymbols.length) * 40; // 40px per symbol row, minimum 2 rows
+      const baseWidth = 330;
+      const symbolListHeight = Math.max(2, watchedSymbols.length) * 46; // 40px per symbol row, minimum 2 rows
       const headerHeight = 50; // Header with title and buttons
 
       // Additional height when chart is shown
@@ -374,21 +379,6 @@ const PriceWidget: React.FC = () => {
 
     return () => clearTimeout(timeoutId);
   }, [selectedCoin, watchedSymbols.length, showAddModal]); // Trigger when these change
-
-  // Set initial window size on component mount
-  useEffect(() => {
-    const setInitialSize = () => {
-      const baseWidth = 300;
-      const baseHeight = 150; // Start with reasonable default
-      console.log('Setting initial window size');
-      ipcRenderer.send('resize-window', { width: baseWidth, height: baseHeight });
-    };
-
-    // Set initial size after component mounts
-    const timeoutId = setTimeout(setInitialSize, 200);
-
-    return () => clearTimeout(timeoutId);
-  }, []); // Only run once on mount
 
   return (
     <div className="widget-container">
