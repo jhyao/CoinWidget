@@ -52,6 +52,23 @@ const PriceWidget: React.FC = () => {
     loadWatchedSymbols();
   }, []);
 
+  // Helper to determine market type and construct API URL
+  const getMarketType = (symbol: string): 'SPOT' | 'PERP' => {
+    return symbol.includes('PERP') ? 'PERP' : 'SPOT';
+  };
+
+  const getBinanceSymbol = (symbol: string): string => {
+    // Symbol is already in full format (e.g., BTCUSDT or BTCUSDTPERP)
+    // For PERP, remove the PERP suffix for API calls
+    return symbol.replace('PERP', '');
+  };
+
+  const getDisplayName = (symbol: string): string => {
+    // Extract base asset for display
+    const binanceSymbol = getBinanceSymbol(symbol);
+    return binanceSymbol.replace('USDT', '');
+  };
+
   const loadHistoricalData = async (symbols: string[]) => {
     console.log('Loading historical data...');
 
@@ -60,10 +77,17 @@ const PriceWidget: React.FC = () => {
 
     for (const symbol of symbols) {
       try {
-        const binanceSymbol = `${symbol.toUpperCase()}USDT`;
+        const marketType = getMarketType(symbol);
+        const binanceSymbol = getBinanceSymbol(symbol);
+
+        // Use different API endpoints for spot vs perpetual futures
+        const baseUrl = marketType === 'PERP'
+          ? 'https://fapi.binance.com/fapi/v1'
+          : 'https://api.binance.com/api/v3';
+
         // Binance Klines API for configured interval and history duration
         const response = await fetch(
-          `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=${CHART_CONFIG.BINANCE_INTERVAL}&startTime=${historyStartTime}&limit=${CALCULATED_CONFIG.MAX_DATA_POINTS}`
+          `${baseUrl}/klines?symbol=${binanceSymbol}&interval=${CHART_CONFIG.BINANCE_INTERVAL}&startTime=${historyStartTime}&limit=${CALCULATED_CONFIG.MAX_DATA_POINTS}`
         );
 
         // [
@@ -122,19 +146,19 @@ const PriceWidget: React.FC = () => {
   }, [showAddModal]);
 
   // Handle adding a symbol
-  const handleAddSymbol = async (baseAsset: string) => {
+  const handleAddSymbol = async (fullSymbol: string) => {
     try {
-      const success = await ipcRenderer.invoke('add-symbol', baseAsset);
+      const success = await ipcRenderer.invoke('add-symbol', fullSymbol);
       if (success) {
         const updatedSymbols = await ipcRenderer.invoke('get-watched-symbols');
         setWatchedSymbols(updatedSymbols);
 
         // Initialize states for new symbol
-        setPrices(prev => ({ ...prev, [baseAsset]: null }));
-        setPriceHistory(prev => ({ ...prev, [baseAsset]: [] }));
+        setPrices(prev => ({ ...prev, [fullSymbol]: null }));
+        setPriceHistory(prev => ({ ...prev, [fullSymbol]: [] }));
 
         // Load historical data for new symbol
-        await loadHistoricalData([baseAsset]);
+        await loadHistoricalData([fullSymbol]);
 
         setShowAddModal(false);
         setSearchTerm('');
@@ -272,6 +296,11 @@ const PriceWidget: React.FC = () => {
 
     setIsRefreshing(true);
     try {
+      // Reconnect WebSocket for real-time price updates
+      await ipcRenderer.invoke('reconnect-websocket');
+      console.log('WebSocket reconnected');
+
+      // Reload historical chart data
       await loadHistoricalData([selectedCoin]);
       console.log(`Refreshed chart data for ${selectedCoin}`);
     } catch (error) {
@@ -401,7 +430,20 @@ const PriceWidget: React.FC = () => {
             }}
           >
             <span className="coin-symbol" style={{ color: getSymbolColor(symbol) }}>
-              {symbol}
+              {getDisplayName(symbol)}
+              {getMarketType(symbol) === 'PERP' && (
+                <span className="market-badge" style={{
+                  marginLeft: '4px',
+                  fontSize: '8px',
+                  padding: '1px 3px',
+                  backgroundColor: '#FF6B00',
+                  color: '#fff',
+                  borderRadius: '2px',
+                  fontWeight: 'bold'
+                }}>
+                  PERP
+                </span>
+              )}
             </span>
             <span
               className={`coin-price ${!prices[symbol] ? 'loading' : ''}`}
@@ -454,9 +496,24 @@ const PriceWidget: React.FC = () => {
               <div
                 key={symbol.symbol}
                 className="symbol-option"
-                onClick={() => handleAddSymbol(symbol.baseAsset)}
+                onClick={() => handleAddSymbol(symbol.symbol)}
               >
-                <span className="symbol-name">{symbol.baseAsset}</span>
+                <span className="symbol-name">
+                  {symbol.baseAsset}
+                  {symbol.marketType === 'PERP' && (
+                    <span className="market-badge" style={{
+                      marginLeft: '6px',
+                      fontSize: '9px',
+                      padding: '2px 4px',
+                      backgroundColor: '#FF6B00',
+                      color: '#fff',
+                      borderRadius: '3px',
+                      fontWeight: 'bold'
+                    }}>
+                      PERP
+                    </span>
+                  )}
+                </span>
                 <span className="symbol-pair">{symbol.symbol}</span>
               </div>
             ))}

@@ -1,8 +1,11 @@
+export type MarketType = 'SPOT' | 'PERP';
+
 export interface PriceData {
   symbol: string;
   price: string;
   priceChangePercent: string;
   timestamp: number;
+  marketType?: MarketType;
 }
 
 export interface PriceHistoryPoint {
@@ -30,4 +33,5 @@ export interface BinanceSymbol {
   baseAsset: string;
   quoteAsset: string;
   status: string;
+  marketType: MarketType;
 }

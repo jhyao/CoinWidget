@@ -11,6 +11,16 @@ interface PriceChartProps {
 
 const PriceChart: React.FC<PriceChartProps> = React.memo(({ data, symbol, color }) => {
   const [hoveredData, setHoveredData] = useState<{ price: number; time: string } | null>(null);
+
+  const getDisplayName = (symbol: string): string => {
+    const binanceSymbol = symbol.replace('PERP', '');
+    return binanceSymbol.replace('USDT', '');
+  };
+
+  const getMarketType = (symbol: string): 'SPOT' | 'PERP' => {
+    return symbol.includes('PERP') ? 'PERP' : 'SPOT';
+  };
+
   const formatPrice = (price: number) => {
     const decimals = price > 1000 ? 2 : price > 1 ? 3 : 6;
     return `$${price.toFixed(decimals)}`;
@@ -69,16 +79,36 @@ const PriceChart: React.FC<PriceChartProps> = React.memo(({ data, symbol, color 
   if (data.length === 0) {
     return (
       <div className="chart-placeholder">
-        <p>Loading {symbol} chart...</p>
+        <p>Loading {getDisplayName(symbol)} chart...</p>
       </div>
     );
   }
+
+  const marketType = getMarketType(symbol);
+  const displayName = getDisplayName(symbol);
 
   return (
     <div className="chart-container">
       <div className="chart-header">
         <div className="chart-title">
-          <h4>{symbol} ({CHART_CONFIG.HISTORY_HOURS} hours)</h4>
+          <h4>
+            {displayName}
+            {marketType === 'PERP' && (
+              <span className="market-badge" style={{
+                marginLeft: '6px',
+                fontSize: '10px',
+                padding: '2px 5px',
+                backgroundColor: '#FF6B00',
+                color: '#fff',
+                borderRadius: '3px',
+                fontWeight: 'bold',
+                verticalAlign: 'middle'
+              }}>
+                PERP
+              </span>
+            )}
+            {' '}({CHART_CONFIG.HISTORY_HOURS} hours)
+          </h4>
         </div>
         {hoveredData ? (
           <div className="chart-hover-info">
